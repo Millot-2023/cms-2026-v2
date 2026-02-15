@@ -1,6 +1,6 @@
 <?php
 /**
- * PROJET-CMS-2026 - MOTEUR DE SAUVEGARDE V4
+ * PROJET-CMS-2026 - MOTEUR DE SAUVEGARDE V4 (Modifiée pour Upload Physique)
  */
 
 header('Content-Type: application/json');
@@ -12,6 +12,31 @@ if (!$is_local) {
     echo json_encode(['status' => 'error', 'message' => 'Accès refusé.']);
     exit;
 }
+
+// ---------------------------------------------------------
+// AJOUT : Traitement de l'upload d'image physique (Standard $_FILES)
+// ---------------------------------------------------------
+if (isset($_POST['action']) && $_POST['action'] === 'upload_image' && isset($_FILES['image'])) {
+    $slug = $_POST['slug'] ?? '';
+    $dir = "../content/" . $slug;
+    
+    if (!file_exists($dir)) { 
+        mkdir($dir, 0777, true); 
+    }
+
+    $ext = pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION);
+    $fileName = "img_" . time() . "." . $ext;
+    $target = $dir . "/" . $fileName;
+
+    if (move_uploaded_file($_FILES['image']['tmp_name'], $target)) {
+        // On retourne l'URL relative pour l'affichage dans l'éditeur
+        echo json_encode(["success" => true, "url" => "content/" . $slug . "/" . $fileName, "fileName" => $fileName]);
+    } else {
+        echo json_encode(["success" => false, "message" => "Erreur lors du déplacement du fichier."]);
+    }
+    exit; 
+}
+// ---------------------------------------------------------
 
 // 1. Récupération des données
 $data = $_POST;
@@ -43,7 +68,7 @@ $ds = $data['designSystem'] ?? [];
 if(is_string($ds)) { $ds = json_decode($ds, true); }
 if(empty($ds)) { $ds = $existingData['designSystem'] ?? []; }
 
-// 4. Gestion de la cover
+// 4. Gestion de la cover (Rétro-compatibilité Base64 conservée)
 $coverValue = $data['cover'] ?? ($existingData['cover'] ?? '');
 
 if (strpos($coverValue, 'data:image') === 0) {

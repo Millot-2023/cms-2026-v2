@@ -34,7 +34,17 @@ require_once 'includes/header.php';
 require_once 'includes/hero.php'; 
 
 // Sécurité : Nettoyage des attributs d'édition pour le visiteur
+// 1. Suppression du mode édition
 $finalHtml = str_replace('contenteditable="true"', '', $htmlContent);
+
+// 2. Correction des chemins d'images (on s'assure qu'ils pointent vers le bon dossier content)
+$current_folder_path = 'content/' . $slug . '/';
+$finalHtml = str_replace('../content/' . $slug . '/', $current_folder_path, $finalHtml);
+$finalHtml = str_replace('src="img_', 'src="' . $current_folder_path . 'img_', $finalHtml);
+
+
+
+
 ?>
 
 <style>

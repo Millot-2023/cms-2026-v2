@@ -47,17 +47,14 @@ const studio = {
     },
 
     // AJOUT : Bascule la classe lettrine
-toggleLettrine() {
-        // On récupère la sélection directe dans l'iframe
+    toggleLettrine() {
         const sel = this.iframe.contentWindow.getSelection();
         if (sel.rangeCount > 0) {
             const range = sel.getRangeAt(0);
             let target = range.commonAncestorContainer;
 
-            // Si on a cliqué sur du texte, on remonte au parent
             if (target.nodeType === 3) target = target.parentElement;
 
-            // On cherche le paragraphe ou la colonne
             const block = target.closest('p') || target.closest('.column');
 
             if (block) {
@@ -76,7 +73,11 @@ toggleLettrine() {
         const block = this.canvas.createElement(tag === 'image' ? 'div' : tag);
         
         if (tag === 'image') {
-            block.innerHTML = `<img src="../assets/img/image-template.png" style="width:100%; border-radius:8px; margin:20px 0;">`;
+            // Modification : On crée un conteneur d'image cliquable pour déclencher l'upload
+            block.className = "image-block-wrapper";
+            block.innerHTML = `<img src="../assets/img/image-template.png" 
+                                    onclick="window.parent.document.getElementById('inp-cover').click(); window.parent.studio.setCurrentImgTarget(this);" 
+                                    style="width:100%; border-radius:8px; margin:20px 0; cursor:pointer;">`;
         } else if (tag === 'p') {
             block.innerText = "Nouveau paragraphe éditable...";
         } else {
@@ -90,13 +91,20 @@ toggleLettrine() {
         block.scrollIntoView({ behavior: 'smooth', block: 'center' });
     },
 
+    // Stocke temporairement l'image en cours de modification
+    setCurrentImgTarget(imgEl) {
+        this.lastImgSelected = imgEl;
+    },
+
     publish() {
         const slug = document.getElementById('inp-slug').value;
         const title = this.canvas.getElementById('editable-title').innerText;
         const html = this.canvas.getElementById('editable-core').innerHTML;
         const summary = document.getElementById('inp-summary').value;
+        
+        // On récupère la valeur de cover stockée globalement dans editor.php
+        const cover = window.coverData || '';
 
-        // Extraction du Design System (On récupère les styles inline majeurs)
         const designSettings = {
             mainTitleSize: this.canvas.getElementById('editable-title').style.fontSize || 'default'
         };
@@ -106,7 +114,7 @@ toggleLettrine() {
         formData.append('title', title);
         formData.append('summary', summary);
         formData.append('htmlContent', html);
-        // On envoie le design system en JSON
+        formData.append('cover', cover);
         formData.append('designSystem', JSON.stringify(designSettings));
 
         const btn = document.getElementById('btn-save');

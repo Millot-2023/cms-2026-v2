@@ -93,7 +93,8 @@ if (file_exists($data_path)) {
 $cover_path = ASSETS_URL . "img/image-template.png"; 
 
 if (!empty($cover)) {
-    $cover_path = BASE_URL . "content/" . $slug . "/" . basename($cover);
+    // Si c'est juste un nom de fichier, on reconstruit le chemin
+    $cover_path = (strpos($cover, '/') === false) ? BASE_URL . "content/" . $slug . "/" . $cover : BASE_URL . $cover;
 }
 ?>
 <!DOCTYPE html>
@@ -299,45 +300,66 @@ if (!empty($cover)) {
 
 
 
-
-
-
-
+    // --- CORRECTION : UPLOAD PHYSIQUE ---
 function handleCoverChange(input) {
-    const file = input.files[0];
-    if (!file) return;
+        const file = input.files[0];
+        if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        const base64Data = e.target.result;
+        const formData = new FormData();
+        formData.append('action', 'upload_image');
+        formData.append('slug', currentSlug);
+        formData.append('image', file);
 
-        if (currentTag === 'img' && currentImageElement) {
-            // Image dans le corps de l'article
-            currentImageElement.innerHTML = `<img src="${base64Data}" style="width:100%; height:100%; object-fit:cover;">`;
-            currentImageElement.style.background = "transparent";
-        } else {
-            // Image de couverture (Sidebar)
-            coverData = base64Data; // On stocke le base64 pour save.php
-            const preview = document.getElementById('preview-container');
-            if (preview) {
-                preview.innerHTML = `<img src="${base64Data}" style="width:100%; height:100%; object-fit:cover;">`;
+        fetch('save.php', { method: 'POST', body: formData })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                const displayUrl = '../' + data.url; 
+
+                if (currentTag === 'img' && currentImageElement) {
+                    // On met le chemin relatif à l'admin pour l'affichage immédiat
+                    currentImageElement.innerHTML = `<img src="${displayUrl}" style="width:100%; height:100%; object-fit:cover;">`;
+                    currentImageElement.style.background = "transparent";
+                } else {
+                    coverData = data.fileName; 
+                    const imgPreview = document.getElementById('img-cover-preview');
+                    if (imgPreview) imgPreview.src = displayUrl;
+                }
+            } else {
+                alert("Erreur upload : " + data.message);
             }
-        }
-        publishProject(); // Envoi immédiat au serveur
-    };
-    reader.readAsDataURL(file);
-}
+        });
+    }
 
+    function publishProject() {
+        const btn = document.getElementById('btn-publish-trigger');
+        const originalText = btn.innerText;
+        btn.innerText = "PUBLICATION...";
+        btn.disabled = true;
 
+        // NETTOYAGE DU HTML : On retire les "../" des src des images pour la sauvegarde
+        let cleanHtml = document.getElementById('editor-core').innerHTML;
+        cleanHtml = cleanHtml.replace(/src="\.\.\//g, 'src="');
 
+        var formData = new FormData();
+        formData.append('slug', document.getElementById('inp-slug').value);
+        formData.append('htmlContent', cleanHtml); // On envoie le HTML propre
+        formData.append('designSystem', JSON.stringify(designSystem));
+        formData.append('summary', document.getElementById('inp-summary').value);
+        formData.append('cover', coverData); 
+        formData.append('title', "<?php echo addslashes($title); ?>");
+        formData.append('category', "<?php echo addslashes($category); ?>");
 
-
-
-
-
-
-
-
+        fetch('save.php', { method: 'POST', body: formData })
+        .then(r => r.json())
+        .then(d => {
+            alert(d.status === 'success' ? "✅ " + d.message : "❌ " + d.message);
+        })
+        .finally(() => {
+            btn.innerText = originalText;
+            btn.disabled = false;
+        });
+    }
 
 
 
@@ -389,26 +411,42 @@ function handleCoverChange(input) {
 
 
 
-
-
 function publishProject() {
-    var formData = new FormData();
-    formData.append('slug', document.getElementById('inp-slug').value);
-    formData.append('htmlContent', document.getElementById('editor-core').innerHTML);
-    formData.append('designSystem', JSON.stringify(designSystem));
-    formData.append('summary', document.getElementById('inp-summary').value);
-    formData.append('cover', coverData); // Doit correspondre à la modif dans save.php
-    formData.append('title', "<?php echo addslashes($title); ?>");
-    formData.append('category', "<?php echo addslashes($category); ?>");
+        const btn = document.getElementById('btn-publish-trigger');
+        const originalText = btn.innerText;
+        
+        // État visuel pendant le chargement
+        btn.innerText = "PUBLICATION...";
+        btn.disabled = true;
 
-    fetch('save.php', { method: 'POST', body: formData })
-    .then(r => r.json())
-    .then(d => {
-        console.log("Réponse serveur :", d.message);
-    });
-}
+        var formData = new FormData();
+        formData.append('slug', document.getElementById('inp-slug').value);
+        formData.append('htmlContent', document.getElementById('editor-core').innerHTML);
+        formData.append('designSystem', JSON.stringify(designSystem));
+        formData.append('summary', document.getElementById('inp-summary').value);
+        formData.append('cover', coverData); 
+        formData.append('title', "<?php echo addslashes($title); ?>");
+        formData.append('category', "<?php echo addslashes($category); ?>");
 
-
+        fetch('save.php', { method: 'POST', body: formData })
+        .then(r => r.json())
+        .then(d => {
+            if(d.status === 'success') {
+                alert("✅ " + d.message);
+            } else {
+                alert("❌ Erreur : " + d.message);
+            }
+        })
+        .catch(err => {
+            alert("❌ Erreur critique de communication.");
+            console.error(err);
+        })
+        .finally(() => {
+            // Rétablissement du bouton
+            btn.innerText = originalText;
+            btn.disabled = false;
+        });
+    }
 
 
 
