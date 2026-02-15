@@ -1,11 +1,11 @@
 <?php
-/** Fichier généré par Studio CMS - 15.02.2026 22:17 **/
+/** Fichier généré par Studio CMS - 15.02.2026 22:28 **/
 return array (
   'title' => 'Titre du Projet',
   'cover' => 'img_1771190252.jpg',
   'category' => 'Design',
   'date' => '15.02.2026',
-  'updated' => '2026-02-15 22:17:41',
+  'updated' => '2026-02-15 22:28:59',
   'summary' => '',
   'designSystem' => 
   array (

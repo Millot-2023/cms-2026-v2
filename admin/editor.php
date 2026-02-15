@@ -118,17 +118,28 @@ if (!empty($cover)) {
 
         <div class="sidebar-scroll">
             <span class="section-label">APERÇU CARTE</span>
-            <div class="preview-card-container" id="preview-container" style="width:100%; aspect-ratio:1/1; background:#222; display:flex; align-items:center; justify-content:center; overflow:hidden;">
-                <img src="<?php echo $cover_path; ?>" 
-                     id="img-cover-preview" 
-                     class="<?php echo ($is_in_trash ? 'img-trash' : ''); ?>"
-                     style="width:100%; height:100%; object-fit:cover;"
-                     onerror="this.src='<?php echo ASSETS_URL; ?>img/image-template.png';">
-            </div>
 
-            <button class="tool-btn" style="height:30px; font-size:9px;" onclick="document.getElementById('inp-cover').click()">Changer l'image</button>
-            <input type="file" id="inp-cover" style="display:none;" onchange="handleCoverChange(this)">
+
+
+
+
+<div class="preview-card-container" id="preview-container" style="width:100%; aspect-ratio:1/1; background:#222; display:flex; align-items:center; justify-content:center; overflow:hidden;">
+    <img src="<?php echo $cover_path; ?>" 
+         id="img-cover-preview" 
+         class="<?php echo ($is_in_trash ? 'img-trash' : ''); ?>"
+         style="width:100%; height:100%; object-fit:cover;"
+         onerror="this.src='<?php echo ASSETS_URL; ?>img/image-template.png';">
+</div>
+
+<button class="tool-btn" style="height:30px; font-size:9px;" 
+        onclick="setTarget('img', document.getElementById('preview-container')); document.getElementById('inp-block-img').click();">
+    Changer l'image
+</button>
+
 <input type="file" id="inp-block-img" style="display:none;" onchange="handleCoverChange(this)">
+
+
+
 
             <span class="section-label">MÉTADONNÉES</span>
             <input type="text" id="inp-slug" class="admin-input" value="<?php echo htmlspecialchars($slug); ?>" readonly>
@@ -350,21 +361,27 @@ function handleCoverChange(input) {
         if (data.success) {
             const displayUrl = '../' + data.url; 
 
-            // Si l'appel vient de l'input des blocs OU si un tag img est actif
-            if (input.id === 'inp-block-img' || (currentTag === 'img' && currentImageElement)) {
-                currentImageElement.innerHTML = `<img src="${displayUrl}" style="width:100%; height:100%; object-fit:cover;">`;
-                currentImageElement.style.background = "transparent";
-            } else {
-                // Sinon, c'est la cover réelle du projet (le dashboard)
-                coverData = data.fileName; 
-                const imgPreview = document.getElementById('img-cover-preview');
-                if (imgPreview) imgPreview.src = displayUrl;
+            if (currentImageElement) {
+                if (currentImageElement.id === 'preview-container') {
+                    coverData = data.fileName; 
+                    const imgPreview = document.getElementById('img-cover-preview');
+                    if (imgPreview) imgPreview.src = displayUrl;
+                } else {
+                    currentImageElement.innerHTML = `<img src="${displayUrl}" style="width:100%; height:100%; object-fit:cover;">`;
+                    currentImageElement.style.background = "transparent";
+                }
             }
-        } else {
-            alert("Erreur upload : " + data.message);
         }
+        // --- LA CLÉ EST ICI ---
+        input.value = ""; // On vide l'input pour permettre de recliquer immédiatement
+    })
+    .catch(err => {
+        console.error(err);
+        input.value = ""; 
     });
 }
+
+
 
     function publishProject() {
         const btn = document.getElementById('btn-publish-trigger');
@@ -404,13 +421,11 @@ function addFloatBlock(type) {
     var container = document.createElement('div');
     container.className = 'block-container';
     
-    // On ne calcule plus de variable "style". 
-    // On applique simplement la classe block-float ET le type (left, right, bottom-left, etc.)
     container.innerHTML = 
         '<div class="delete-block" onclick="this.parentElement.remove()">✕</div>' +
         '<div class="block-float ' + type + '">' +
             '<div class="image-placeholder" ' +
-                'onclick="setTarget(\'img\', this)" ' +
+                'onclick="setTarget(\'img\', this)" ' + // Garde le type 'img' pour ta logique actuelle
                 'ondblclick="document.getElementById(\'inp-block-img\').click();" ' + 
                 'style="background:#eee; aspect-ratio:16/9; display:flex; align-items:center; justify-content:center; cursor:pointer; overflow:hidden; position:relative;">' +
                 'IMAGE' +
@@ -420,7 +435,6 @@ function addFloatBlock(type) {
     
     document.getElementById('editor-core').appendChild(container);
 }
-
 
 
 
