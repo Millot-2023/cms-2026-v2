@@ -4,12 +4,12 @@
     max-width: 850px;
     container-type: inline-size;
     box-sizing: border-box;
-    overflow-x: hidden;
+    margin: 0 auto;
 }
 
 /* 2. Gestion des colonnes */
 .grid-wrapper {
-    display: block; 
+    display: block; // État de base (Mobile / Empilé)
     width: 100%;
     box-sizing: border-box;
 
@@ -17,43 +17,34 @@
         width: 100%;
         margin-bottom: 20px;
         box-sizing: border-box;
-
-
-
-
     }
 
-    /* --- MODE COLONNES (Article final ET Éditeur large) --- */
-    @media (min-width: 768px) {
+    /* --- MODE COLONNES (Se déclenche si Parent > 600px) --- */
+    @container (min-width: 600px) { 
         display: flex;
         flex-direction: row;
         gap: 20px;
 
         .col-item {
             flex: 1;
-            width: auto;      // On supprime le 0 qui cassait tout
-            min-width: 0;     // Sécurité flux texte
+            width: auto;
+            min-width: 0;
             margin-bottom: 0;
-        p {
-            font-size: 0.9rem; // Plus petit car la colonne est étroite
-            line-height: 1.5;  // On resserre un poil l'interligne pour l'esthétique
+
+            p {
+                font-size: 0.9rem;
+                line-height: 1.5;
             }
-
-
         }
 
-        // Si tu veux quand même utiliser grid pour la précision :
-        &.cols-2 { display: grid; grid-template-columns: repeat(2, 1fr); }
-        &.cols-3 { display: grid; grid-template-columns: repeat(3, 1fr); }
-    }
-
-    /* --- LA SEULE RÈGLE DE FORCE (Éditeur bouton Mobile) --- */
-    .paper.mobile-view & {
-        display: block; 
-        
-        .col-item {
-            width: 100%;
-            margin-bottom: 20px;
+        /* Les variantes Grid ne s'activent qu'ici */
+        &.cols-2 { 
+            display: grid; 
+            grid-template-columns: repeat(2, 1fr); 
+        }
+        &.cols-3 { 
+            display: grid; 
+            grid-template-columns: repeat(3, 1fr); 
         }
     }
 }

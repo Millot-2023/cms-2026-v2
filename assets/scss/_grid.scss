@@ -28,6 +28,11 @@
     padding-top: 4rem; // On augmente un peu l'espace pour l'esthétique
     padding-bottom: 5rem; // On ajoute de l'espace en bas pour le confort de lecture
 
+    // --- ACTIVATION DES CONTAINER QUERIES ---
+    container-type: inline-size;
+    container-name: main-canvas;
+    // -----------------------------------------
+
     & > :first-child {
         margin-top: 0 !important;
         h1, h2 { margin-top: 0; }

@@ -28,7 +28,6 @@ html, body {
 }
 
 body {
-  line-height: 1.5;
   background-color: #ffffff;
   color: #1a1a1a;
 }
@@ -113,6 +112,7 @@ h3 {
 }
 
 p {
+  line-height: 1.6;
   margin-bottom: 1.5rem;
 }
 
@@ -828,7 +828,7 @@ body.sidebar-hidden .sidebar-trigger {
   container-type: inline-size;
   -webkit-box-sizing: border-box;
           box-sizing: border-box;
-  overflow-x: hidden;
+  margin: 0 auto;
 }
 
 /* 2. Gestion des colonnes */
@@ -845,9 +845,9 @@ body.sidebar-hidden .sidebar-trigger {
           box-sizing: border-box;
 }
 .grid-wrapper {
-  /* --- MODE COLONNES (Article final ET Éditeur large) --- */
+  /* --- MODE COLONNES (Se déclenche si Parent > 600px) --- */
 }
-@media (min-width: 768px) {
+@container (min-width: 600px) {
   .grid-wrapper {
     display: -webkit-box;
     display: -ms-flexbox;
@@ -866,6 +866,13 @@ body.sidebar-hidden .sidebar-trigger {
     min-width: 0;
     margin-bottom: 0;
   }
+  .grid-wrapper .col-item p {
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+  .grid-wrapper {
+    /* Les variantes Grid ne s'activent qu'ici */
+  }
   .grid-wrapper.cols-2 {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -874,16 +881,6 @@ body.sidebar-hidden .sidebar-trigger {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
   }
-}
-.grid-wrapper {
-  /* --- LA SEULE RÈGLE DE FORCE (Éditeur bouton Mobile) --- */
-}
-.paper.mobile-view .grid-wrapper {
-  display: block;
-}
-.paper.mobile-view .grid-wrapper .col-item {
-  width: 100%;
-  margin-bottom: 20px;
 }
 
 /* --- LOGIQUE UNIVERSELLE DES BLOCS FLOATS --- */
@@ -961,6 +958,8 @@ body.sidebar-hidden .sidebar-trigger {
   scroll-margin-top: 60px;
   padding-top: 4rem;
   padding-bottom: 5rem;
+  container-type: inline-size;
+  container-name: main-canvas;
 }
 #main > :first-child {
   margin-top: 0 !important;
@@ -1383,6 +1382,9 @@ body.no-anim .hero-section .hero-content .hero-subtitle {
             transform: translateY(-5px);
   }
 }
+/* ==========================================================================
+   MAIN.SCSS - ARCHITECTURE PROJET-CMS-2026
+   ========================================================================== */
 /* FICHIER : assets/scss/_cards.scss 
    PROJET : CMS-2026
    OBJECTIF : Grille militaire 220px avec effet Hover (Profondeur)
@@ -1487,7 +1489,7 @@ article.grid-block .card-content h1.main-article-title, .grid-block .card-conten
 article.grid-block .card-content p, .grid-block .card-content p {
   color: #666 !important;
   font-size: 0.9rem;
-  line-height: 1.4;
+  line-height: 1.6;
 }
 
 /* ==========================================================================
@@ -1815,7 +1817,6 @@ footer .footer-content p {
 .edit-form .edit-textarea {
   width: 100%;
   min-height: 120px;
-  font-size: 1rem;
   line-height: 1.6;
   border: 1px solid #eee;
   padding: 1rem;
